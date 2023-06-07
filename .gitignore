@@ -1,7 +1,13 @@
-#dir
+# config
+*.env
+
+# OS
+.DS_Store
+
+# webpack
+bundle.js*
+
+
+# directories
 node_modules/
 dist/
-
-.env
-
-
