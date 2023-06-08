@@ -1,36 +1,68 @@
+/* eslint-disable consistent-return */
 const db = require('./db');
 
-exports.addOne = (object, { user }) => db.Borrower.findOne({ email: object.email }).exec()
-  .then((result) => {
-    if (result) {
-      throw new Error('USER ALREADY IN USE');
-    }
-    if (user === 'borrower') {
-      return db.saveBorrower(object);
-    } if (user === 'owner') {
-      return db.saveOwner(object);
-    }
-    throw new Error('Invalid user type: must be either "borrower" or "owner"');
-  });
+exports.addOne = (object, { user }) => {
+  if (user === 'borrower') {
+    return db.Borrower.findOne({ email: object.email }).exec()
+      .then((result) => {
+        if (result) {
+          console.log(result);
+          return Promise.reject(new Error('USER ALREADY IN USE'));
+        }
+        return db.saveBorrower(object);
+      });
+  }
+  if (user === 'owner') {
+    return db.Owner.findOne({ email: object.email }).exec()
+      .then((result) => {
+        if (result) {
+          console.log(result);
+          return Promise.reject(new Error('USER ALREADY IN USE'));
+        }
+        return db.saveOwner(object);
+      });
+  }
+  return Promise.reject(new Error('INVALID USER TYPE: MUST BE EITHER "BORROWER" OR "OWNER"'));
+};
 
-exports.getAll = ({ email }) => db.Borrower.findOne({ email }).exec()
-  .then((borrowerResult) => {
+exports.getAll = async ({ email }) => {
+  try {
+    const ownersResult = await db.Owner.find({}).sort({ createAt: -1 }).exec();
+    const borrowerResult = await db.Borrower.findOne({ email }).exec();
     if (borrowerResult) {
-      return db.Owner.find({}).sort({ createdAt: -1 }).exec()
-        .then((ownersResult) => ({
-          borrower: borrowerResult,
-          owners: ownersResult,
-        }));
+      return {
+        borrower: borrowerResult,
+        owners: ownersResult,
+        owner: '',
+      };
     }
-    return borrowerResult;
-  })
-  .catch((err) => console.log('MODEL GET ALL ERR', err));
+    const ownerResult = await db.Owner.findOne({ email }).exec();
+    if (ownerResult) {
+      return {
+        borrower: '',
+        owner: ownerResult,
+        owners: ownersResult,
+      };
+    }
+  } catch (err) {
+    console.log('MODEL GET ALL ERR', err);
+    throw err;
+  }
+};
+
+exports.changeOne = (user, query, update) => {
+  if (user === 'borrower') {
+    return db.Borrower.updateOne({ email: query }, update);
+  } if (user === 'owner') {
+    return db.Owner.updateOne({ email: query }, update);
+  }
+  return Promise.reject(new Error('INVALID USER TYPE: MUST BE EITHER "BORROWER" OR "OWNER"'));
+};
+
 // exports.removeOne = (object) => {
 //   return db.Model.remove(object);
-// },
-// exports.changeOne = (obj1,obj2) => {
-//   return db.Model.updateOne(obj1, {$set: obj2});
-// },
+// };
+
 // exports.changeMany = (obj1) => {
 //   return db.Model.updateMany(obj1, { $not: { friend: true } });
 // };
