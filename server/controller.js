@@ -11,25 +11,28 @@ exports.addUser = (req, res) => {
 
 exports.getDoggies = (req, res) => {
   model
-    .getAll(req.body)
+    .getAll(req.query)
     .then((result) => res.status(200).send(result))
     .catch((err) => console.log('COTROLLER GET DOGGIES ERR ===> ', err));
 };
 
-// exports.removeMessage = (req, res) => {
+exports.updateUser = (req, res) => {
+  console.log(req.params);
+  console.log(req.body);
+  model.changeOne(req.params.user, req.body.email, req.body)
+    .then((result) => (result.modifiedCount === 0 ? res.sendStatus(204) : res.sendStatus(200)))
+    .catch((err) => console.log('COTROLLER ERR ===> ', err));
+};
+
+// exports.removeUser = (req, res) => {
 //   model.removeOne(req.params)
 //     .then((result) => (result.deletedCount === 0 ? res.sendStatus(204) : res.sendStatus(202)))
 //     .catch((err) => console.log('COTROLLER ERR ===> ', err));
-// },
-
-// exports.changeStatus = (req, res) => {
-//   model.changeOne(req.body[0], req.body[1])
-//     .then((result) => (result.modifiedCount === 0 ? res.sendStatus(204) : res.sendStatus(200)))
-//     .catch((err) => console.log('COTROLLER ERR ===> ', err));
-// },
+// };
 
 // exports.friendStatus = (req, res) => {
 //   model.changeMany(req.body)
 //     .then((result) => (result.modifiedCount === 0 ? res.sendStatus(204) : res.sendStatus(200)))
 //     .catch((err) => console.log('COTROLLER ERR ===> ', err));
 // };
+//
